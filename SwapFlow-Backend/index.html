@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://localhost:* https://localhost:* https://api.mainnet-beta.solana.com/; script-src 'self' https://unpkg.com https://bundle.run 'unsafe-inline';">
+    <title>Solana Payment Test</title>
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <script src="https://bundle.run/buffer@6.0.3"></script>
+    <script>
+        // Create Buffer global
+        var Buffer = buffer.Buffer;
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #response {
+            white-space: pre-wrap;
+            background: #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .info {
+            color: #007bff;
+        }
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>API Status</h2>
+        <button onclick="checkStatus()">Check API Status</button>
+        <div id="statusResponse" class="info"></div>
+    </div>
+
+    <div class="container">
+        <h2>Get Quote</h2>
+        <button onclick="getQuote()">Get Quote for 1 SOL</button>
+        <div id="quoteError" class="error" style="display: none;"></div>
+    </div>
+
+    <div class="container">
+        <h2>Create and Send Transaction</h2>
+        <button onclick="createAndSendTransaction()">Send 1 SOL</button>
+    </div>
+
+    <div class="container">
+        <h3>Response:</h3>
+        <div id="response"></div>
+    </div>
+
+    <div id="transactionError" class="error"></div>
+
+    <script>
+        let quoteResponse = null;
+        const BASE_URL = 'http://localhost:8080'; // Change this to match your backend port
+
+        async function connectWallet() {
+            try {
+                if (!window.solana || !window.solana.isPhantom) {
+                    throw new Error('Phantom wallet is not installed!');
+                }
+                
+                await window.solana.connect();
+                return window.solana;
+            } catch (error) {
+                console.error('Error connecting to wallet:', error);
+                throw error;
+            }
+        }
+
+        async function checkStatus() {
+            try {
+                console.log('Checking API status...');
+                const response = await fetch(`${BASE_URL}/api/v1/status`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'omit'
+                });
+                
+                console.log('Status response:', response.status);
+                const data = await response.json();
+                console.log('Status data:', data);
+                
+                document.getElementById('statusResponse').textContent = 
+                    `API Status: ${JSON.stringify(data)}`;
+                
+                return response.ok;
+            } catch (error) {
+                console.error('Status check error:', error);
+                document.getElementById('statusResponse').textContent = 
+                    `Error checking status: ${error.message}`;
+                return false;
+            }
+        }
+
+        async function getQuote() {
+            try {
+                // Check status first
+                const isAvailable = await checkStatus();
+                if (!isAvailable) {
+                    throw new Error('API is not available');
+                }
+
+                const params = new URLSearchParams({
+                    inputMint: 'SOL',
+                    outputMint: 'USDC',
+                    amount: '1000000000',
+                    slippageBps: '50',
+                    swapMode: 'ExactIn'
+                });
+
+                const url = `${BASE_URL}/api/v1/quote?${params.toString()}`;
+                console.log('Requesting quote from:', url);
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'omit'
+                });
+
+                console.log('Quote response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Quote error response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Quote data:', data);
+                
+                quoteResponse = data;
+                document.getElementById('response').textContent = 
+                    JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error('Error getting quote:', error);
+                showError('quoteError', `Error: ${error.message}`);
+                document.getElementById('response').textContent = '';
+            }
+        }
+
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                // Hide error after 5 seconds
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                }, 5000);
+            } else {
+                console.error('Error element not found:', elementId);
+                alert(message); // Fallback if element not found
+            }
+        }
+
+        async function createAndSendTransaction() {
+            try {
+                const wallet = await connectWallet();
+                
+                if (typeof Buffer === 'undefined') {
+                    throw new Error('Buffer is not defined. Please check buffer module loading.');
+                }
+
+                const requestBody = {
+                    inputMint: 'SOL',
+                    outputMint: 'USDC',
+                    amount: '1000000000',
+                    userPublicKey: wallet.publicKey.toString(),
+                    slippageBps: '50',
+                    swapMode: 'ExactIn'
+                };
+
+                console.log('Creating transaction with:', requestBody);
+
+                const response = await fetch(`${BASE_URL}/api/v1/swap`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Swap error response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const swapData = await response.json();
+                document.getElementById('response').textContent = JSON.stringify(swapData, null, 2);
+
+                if (swapData.status === 'success') {
+                    const connection = new solanaWeb3.Connection(
+                        'https://api.mainnet-beta.solana.com',
+                        'confirmed'
+                    );
+
+                    console.log('Transaction data:', swapData.data.swapTransaction);
+
+                    const serializedTransaction = Buffer.from(swapData.data.swapTransaction, 'base64');
+                    const transaction = solanaWeb3.VersionedTransaction.deserialize(serializedTransaction);
+                    const signedTx = await wallet.signTransaction(transaction);
+                    
+                    const txid = await connection.sendRawTransaction(
+                        signedTx.serialize(),
+                        {
+                            skipPreflight: false,
+                            preflightCommitment: 'confirmed',
+                        }
+                    );
+
+                    document.getElementById('response').textContent += '\n\nTransaction sent! TXID: ' + txid;
+
+                    // Wait for confirmation
+                    const confirmation = await connection.confirmTransaction(txid);
+                    
+                    if (confirmation) {
+                        // Send confirmation to backend
+                        const confirmResponse = await fetch(`${BASE_URL}/api/v1/confirm-transaction`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                txid,
+                                userPublicKey: wallet.publicKey.toString(),
+                                amount: '1000000000',
+                                inputMint: 'SOL',
+                                outputMint: 'USDC'
+                            })
+                        });
+
+                        if (!confirmResponse.ok) {
+                            throw new Error('Failed to confirm transaction with backend');
+                        }
+
+                        const confirmData = await confirmResponse.json();
+                        document.getElementById('response').textContent += '\n\nTransaction confirmed! Details: ' + 
+                            JSON.stringify(confirmData, null, 2);
+                    }
+                }
+            } catch (error) {
+                console.error('Error creating/sending transaction:', error);
+                showError('transactionError', `Error: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html> 

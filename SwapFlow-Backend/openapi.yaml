@@ -1,0 +1,302 @@
+openapi: 3.0.0
+info:
+  title: Swap API
+  version: 1.0.0
+  description: API for authentication and swap operations
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+
+    Success:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+
+paths:
+  /auth/signup:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          email:
+                            type: string
+                      apiKey:
+                        type: string
+
+  /auth/login:
+    post:
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: token=xyz; HttpOnly; Secure; SameSite=Strict
+
+  /auth/logout:
+    post:
+      summary: Logout user
+      responses:
+        '200':
+          description: Logout successful
+
+  /auth/profile:
+    get:
+      summary: Get user profile
+      security:
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Profile retrieved successfully
+
+  /auth/wallet:
+    post:
+      summary: Add wallet address
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tokenName
+                - address
+              properties:
+                tokenName:
+                  type: string
+                address:
+                  type: string
+
+  /api/quote:
+    get:
+      summary: Get swap quote
+      parameters:
+        - in: query
+          name: inputMint
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: outputMint
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: amount
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: slippageBps
+          schema:
+            type: string
+            default: "50"
+        - in: query
+          name: swapMode
+          schema:
+            type: string
+            default: ExactIn
+      responses:
+        '200':
+          description: Quote retrieved successfully
+
+  /api/swap:
+    post:
+      summary: Create swap transaction
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - inputMint
+                - outputMint
+                - amount
+                - customerPublicKey
+              properties:
+                inputMint:
+                  type: string
+                outputMint:
+                  type: string
+                amount:
+                  type: string
+                slippageBps:
+                  type: string
+                  default: "50"
+                customerPublicKey:
+                  type: string
+
+  /api/confirm-transaction:
+    post:
+      summary: Confirm completed transaction
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - initialTxId
+                - signature
+              properties:
+                initialTxId:
+                  type: string
+                signature:
+                  type: string
+
+  /api/transactions:
+    get:
+      summary: Get transaction history
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Transaction history retrieved successfully
+
+  /auth/wallets:
+    get:
+      summary: Get user's wallets
+      security:
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Wallets retrieved successfully
+
+  /auth/transactions:
+    get:
+      summary: Get all user transactions
+      security:
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+
+  /auth/transactions/{id}:
+    get:
+      summary: Get transaction details
+      security:
+        - CookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction details retrieved successfully
+
+    patch:
+      summary: Update transaction
+      security:
+        - CookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                notes:
+                  type: string
+
+    delete:
+      summary: Delete transaction
+      security:
+        - CookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string 

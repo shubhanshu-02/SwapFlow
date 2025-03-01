@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwapFlow Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .error {
+            color: red;
+            display: none;
+            margin: 10px 0;
+        }
+        .success {
+            color: green;
+            display: none;
+            margin: 10px 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input {
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .api-key {
+            background: #fff;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>SwapFlow Admin Panel</h1>
+
+    <!-- Login/Signup Section -->
+    <div class="container" id="authSection">
+        <h2>Authentication</h2>
+        <div id="loginForm">
+            <h3>Login</h3>
+            <input type="email" id="loginEmail" placeholder="Email">
+            <input type="password" id="loginPassword" placeholder="Password">
+            <button onclick="login()">Login</button>
+            <div class="error" id="loginError"></div>
+            <div class="success" id="loginSuccess"></div>
+        </div>
+
+        <div id="signupForm">
+            <h3>Signup</h3>
+            <input type="email" id="signupEmail" placeholder="Email">
+            <input type="password" id="signupPassword" placeholder="Password">
+            <button onclick="signup()">Signup</button>
+            <div class="error" id="signupError"></div>
+            <div class="success" id="signupSuccess"></div>
+        </div>
+    </div>
+
+    <!-- API Keys Section -->
+    <div class="container" id="apiKeysSection" style="display: none;">
+        <h2>API Keys</h2>
+        <div id="apiKeysList"></div>
+        <button onclick="generateApiKey()">Generate New API Key</button>
+        <div class="error" id="apiKeyError"></div>
+        <div class="success" id="apiKeySuccess"></div>
+    </div>
+
+    <!-- Wallet Management Section -->
+    <div class="container" id="walletSection" style="display: none;">
+        <h2>Wallet Management</h2>
+        <input type="text" id="tokenName" placeholder="Token Name (e.g., SOL, USDC)">
+        <input type="text" id="walletAddress" placeholder="Wallet Address">
+        <button onclick="addWallet()">Add/Update Wallet</button>
+        <div id="walletsList"></div>
+        <div class="error" id="walletError"></div>
+        <div class="success" id="walletSuccess"></div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:3000';
+        let currentUser = null;
+
+        // Auth Functions
+        async function login() {
+            try {
+                const response = await fetch(`${BASE_URL}/auth/v1/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: document.getElementById('loginEmail').value,
+                        password: document.getElementById('loginPassword').value
+                    }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    showSuccess('loginSuccess', 'Login successful!');
+                    currentUser = data.data.user;
+                    showAdminSections();
+                    loadApiKeys();
+                    loadWallets();
+                } else {
+                    showError('loginError', data.message);
+                }
+            } catch (error) {
+                showError('loginError', 'Login failed');
+            }
+        }
+
+        async function signup() {
+            try {
+                const response = await fetch(`${BASE_URL}/auth/v1/signup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: document.getElementById('signupEmail').value,
+                        password: document.getElementById('signupPassword').value
+                    })
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    showSuccess('signupSuccess', 'Signup successful! Please login.');
+                } else {
+                    showError('signupError', data.message);
+                }
+            } catch (error) {
+                showError('signupError', 'Signup failed');
+            }
+        }
+
+        // API Key Functions
+        async function loadApiKeys() {
+            try {
+                const response = await fetch(`${BASE_URL}/auth/v1/profile`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                const apiKeysList = document.getElementById('apiKeysList');
+                apiKeysList.innerHTML = '<h3>Your API Keys:</h3>';
+                
+                data.data.user.apiKeys.forEach(key => {
+                    const keyDiv = document.createElement('div');
+                    keyDiv.className = 'api-key';
+                    keyDiv.textContent = `Key: ${key.key} (Created: ${new Date(key.createdAt).toLocaleDateString()})`;
+                    apiKeysList.appendChild(keyDiv);
+                });
+            } catch (error) {
+                showError('apiKeyError', 'Failed to load API keys');
+            }
+        }
+
+        // Wallet Functions
+        async function loadWallets() {
+            try {
+                const response = await fetch(`${BASE_URL}/auth/v1/wallets`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                const walletsList = document.getElementById('walletsList');
+                walletsList.innerHTML = '<h3>Your Wallets:</h3>';
+                
+                data.data.wallets.forEach(wallet => {
+                    const walletDiv = document.createElement('div');
+                    walletDiv.className = 'api-key';
+                    walletDiv.textContent = `${wallet.tokenName}: ${wallet.address}`;
+                    walletsList.appendChild(walletDiv);
+                });
+            } catch (error) {
+                showError('walletError', 'Failed to load wallets');
+            }
+        }
+
+        async function addWallet() {
+            try {
+                const response = await fetch(`${BASE_URL}/auth/v1/wallet`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        tokenName: document.getElementById('tokenName').value,
+                        address: document.getElementById('walletAddress').value
+                    })
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    showSuccess('walletSuccess', 'Wallet updated successfully');
+                    loadWallets();
+                } else {
+                    showError('walletError', data.message);
+                }
+            } catch (error) {
+                showError('walletError', 'Failed to update wallet');
+            }
+        }
+
+        // Utility Functions
+        function showAdminSections() {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('apiKeysSection').style.display = 'block';
+            document.getElementById('walletSection').style.display = 'block';
+        }
+
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+            setTimeout(() => element.style.display = 'none', 5000);
+        }
+
+        function showSuccess(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+            setTimeout(() => element.style.display = 'none', 5000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String               @id @default(uuid())
+  email              String               @unique
+  passwordHash       String
+  apiKeys            ApiKey[]
+  transactions       Transaction[]
+  initialTransactions InitialTransaction[]
+  completedTransactions CompletedTransaction[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  wallets            WalletAddress[]
+}
+
+model ApiKey {
+  id        String    @id @default(uuid())
+  key       String    @unique
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime  @default(now())
+  lastUsed  DateTime?
+  active    Boolean   @default(true)
+}
+
+model Transaction {
+  id              String    @id @default(uuid())
+  user            User      @relation(fields: [userId], references: [id])
+  userId          String
+  inputMint       String
+  outputMint      String
+  amount          String
+  slippageBps     String
+  status          String    @default("pending")
+  transactionHash String?   // To store txid after swap
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+}
+
+model InitialTransaction {
+  id              String    @id @default(uuid())
+  user            User      @relation(fields: [userId], references: [id])
+  userId          String
+  inputMint       String
+  outputMint      String
+  amount          String
+  slippageBps     String
+  apiKeyUsed      String
+  customerAddress String
+  requestedAt     DateTime  @default(now())
+  completedTx     CompletedTransaction?
+}
+
+model CompletedTransaction {
+  id                String    @id @default(uuid())
+  initialTransaction InitialTransaction @relation(fields: [initialTxId], references: [id])
+  initialTxId       String    @unique
+  user              User      @relation(fields: [userId], references: [id])
+  userId            String
+  transactionHash   String    
+  completedAt       DateTime  @default(now())
+  status            String    @default("success")
+}
+
+model WalletAddress {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  tokenName String   // e.g., "SOL", "USDC"
+  address   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, tokenName]) // One address per token per user
+}
