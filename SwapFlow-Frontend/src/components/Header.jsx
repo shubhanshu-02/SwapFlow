@@ -28,7 +28,7 @@ function Header() {
               to="/quote"
               className={`text-sm ${location.pathname === "/swap" ? "font-medium" : "text-muted-foreground"}`}
             >
-              Get Quote
+              Price Quote
             </Link>
             {user && (
               <Link

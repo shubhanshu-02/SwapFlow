@@ -11,7 +11,7 @@ function HomePage() {
         <p className="text-xl text-muted-foreground">The easiest way to swap tokens on Solana</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl pb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl pb-4">
         <Card>
           <CardHeader>
             <CardTitle>Swap Tokens</CardTitle>
@@ -28,6 +28,23 @@ function HomePage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>Price Quotes</CardTitle>
+            <CardDescription>Get the best payment quote for your transaction</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to="/quote">
+              <Button className="w-full">
+                Go to Price Quote <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+      </div>
+
+<div className="gap-6 w-full max-w-lg pb-8">
+        <Card>
+          <CardHeader>
             <CardTitle>Admin Panel</CardTitle>
             <CardDescription>Manage your API keys and wallet addresses</CardDescription>
           </CardHeader>
@@ -39,9 +56,9 @@ function HomePage() {
             </Link>
           </CardContent>
         </Card>
+</div>
 
         
-      </div>
 
       <div className="px-6">
 
