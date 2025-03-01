@@ -24,6 +24,7 @@ function AdminPage() {
   const [tokenName, setTokenName] = useState("")
   const [walletAddress, setWalletAddress] = useState("")
   const [isAddingWallet, setIsAddingWallet] = useState(false)
+  const [apiKey, setApiKey] = useState("")
 
   const BASE_URL = "http://localhost:3000"
 
@@ -34,9 +35,13 @@ function AdminPage() {
     } else if (user) {
       loadApiKeys()
       loadWallets()
+      if (apiKeys.length > 0) {
+        setApiKey(apiKeys[0].key)
+      }
       loadTransactions()
     }
   }, [user, loading, navigate])
+
 
   const loadApiKeys = async () => {
     setIsLoadingKeys(true)
@@ -167,7 +172,10 @@ function AdminPage() {
   const loadTransactions = async () => {
     setIsLoadingTransactions(true)
     try {
-      const response = await fetch(`${BASE_URL}/auth/v1/transactions`, {
+      const response = await fetch(`${BASE_URL}/api/v1/transactions`, {
+        headers: {
+          "x-api-key": apiKey,
+        },
         credentials: "include",
       })
       const data = await response.json()
