@@ -17,12 +17,18 @@ function Header() {
           <Link to="/" className="font-bold text-xl">
             SwapFlow
           </Link>
-          <nav className="hidden md:flex items-center space-x-4">
+          <nav className="hidden md:flex items-center space-x-6">
             <Link
               to="/swap"
               className={`text-sm ${location.pathname === "/swap" ? "font-medium" : "text-muted-foreground"}`}
             >
               Swap
+            </Link>
+            <Link
+              to="/quote"
+              className={`text-sm ${location.pathname === "/swap" ? "font-medium" : "text-muted-foreground"}`}
+            >
+              Get Quote
             </Link>
             {user && (
               <Link

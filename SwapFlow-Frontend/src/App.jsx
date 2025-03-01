@@ -6,6 +6,7 @@ import SignupPage from "./pages/SignupPage"
 import AdminPage from "./pages/AdminPage"
 import SwapPage from "./pages/SwapPage"
 import ProtectedRoute from "./components/ProtectedRoute"
+import QuotePage from "./pages/QuotePage"
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="auth/login" element={<LoginPage />} />
         <Route path="auth/signup" element={<SignupPage />} />
         <Route path="swap" element={<SwapPage />} />
+        <Route path="quote" element={<QuotePage />} />
         <Route
           path="admin"
           element={
