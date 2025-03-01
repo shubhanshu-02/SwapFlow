@@ -6,7 +6,6 @@ import { useToast } from "../hooks/useToast"
 const AuthContext = createContext(undefined)
 
 export function AuthProvider({ children }) {
-  console.log("AuthProvider is wrapping components"); 
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()

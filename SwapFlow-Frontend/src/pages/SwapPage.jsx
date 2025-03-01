@@ -400,14 +400,14 @@ function SwapPage() {
               <div>
                 <div className="text-sm text-muted-foreground">Output Amount</div>
                 <div className="font-medium">
-                  {formatAmount(quoteData.data.outAmount, outputMint)} {outputMint}
+                  {formatAmount(quoteData.data.outputValue, outputMint)} {outputMint}
                 </div>
               </div>
             </div>
 
             <div>
               <div className="text-sm text-muted-foreground">Price Impact</div>
-              <div className="font-medium">{quoteData.data.priceImpactPct}%</div>
+              <div className="font-medium">{(quoteData.data.feeAmount / 100000).toFixed(3)}</div>
             </div>
 
             {quoteData.data.routePlan && (
