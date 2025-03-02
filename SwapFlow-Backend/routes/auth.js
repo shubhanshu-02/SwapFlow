@@ -128,12 +128,15 @@ router.post('/login', async (req, res) => {
             { expiresIn: '24h' }
         );
 
-        // Set cookie
+        // Update cookie settings
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-            sameSite: 'strict',
-            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            maxAge: 24 * 60 * 60 * 1000,
+            domain: process.env.NODE_ENV === 'production' 
+                ? '.onrender.com'  
+                : undefined
         });
 
         res.json({

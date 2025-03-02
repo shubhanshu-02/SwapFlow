@@ -9,7 +9,11 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
- const BASE_URL = "https://swapflow-mdnx.onrender.com"
+
+  //meta vite env
+ const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+
 
   useEffect(() => {
     // Check if user is already logged in
@@ -37,43 +41,47 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      setLoading(true)
-      const response = await fetch(`${BASE_URL}/auth/v1/login`, {
-        method: "POST",
+      const U  = import.meta.env.VITE_BASE_URL;
+      const response = await fetch(`${U}/auth/v1/login`, {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
-        credentials: "include",
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
+      console.log("Login API Response:", data); // Log the response
 
-      if (data.status === "success") {
-        setUser(data.data.user)
+      if (data.status === 'success') {
+        // Update user with the API key from the response
+        setUser({
+          ...data.data.user,
+          apiKey: data.data.apiKey // Include the API key in the user object
+        });
         toast({
           title: "Login successful",
           description: "Welcome back!",
         })
-        return true
+        return true;
       } else {
+        console.error("Login failed:", data.message);
         toast({
           title: "Login failed",
           description: data.message || "Please check your credentials",
           variant: "destructive",
         })
-        return false
+        return false;
       }
     } catch (error) {
-      console.error("Login error:", error)
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: "An unexpected error occurred",
         variant: "destructive",
       })
-      return false
-    } finally {
-      setLoading(false)
+      return false;
     }
   }
 
