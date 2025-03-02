@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
@@ -8,7 +7,7 @@ import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { useToast } from "../hooks/useToast"
-import { Loader2, Key, WalletIcon } from "lucide-react" 
+import { Loader2, Key, WalletIcon, RefreshCw, ClockIcon } from "lucide-react" 
 
 function AdminPage() {
   const { user, loading } = useAuth()
@@ -35,13 +34,15 @@ function AdminPage() {
     } else if (user) {
       loadApiKeys()
       loadWallets()
-      if (apiKeys.length > 0) {
-        setApiKey(apiKeys[0].key)
-      }
-      loadTransactions()
     }
   }, [user, loading, navigate])
 
+  // Add new useEffect to handle apiKey changes
+  useEffect(() => {
+    if (apiKey) {
+      loadTransactions()
+    }
+  }, [apiKey])
 
   const loadApiKeys = async () => {
     setIsLoadingKeys(true)
@@ -172,6 +173,10 @@ function AdminPage() {
   const loadTransactions = async () => {
     setIsLoadingTransactions(true)
     try {
+      if (!apiKey) {
+        throw new Error("No API key available")
+      }
+      
       const response = await fetch(`${BASE_URL}/api/v1/transactions`, {
         headers: {
           "x-api-key": apiKey,
@@ -181,7 +186,16 @@ function AdminPage() {
       const data = await response.json()
 
       if (data.status === "success") {
-        setTransactions(data.data.transactions || [])
+        // Update to match the API response structure
+        const formattedTransactions = data.data.transactions.map(tx => ({
+          id: tx.id,
+          inputMint: tx.inputMint,
+          outputMint: tx.outputMint,
+          inputAmount: tx.amount, // Changed from outputAmount to match API
+          status: tx.status,
+          createdAt: tx.requestedAt // Changed from createdAt to match API
+        }))
+        setTransactions(formattedTransactions)
       }
     } catch (error) {
       console.error("Failed to load transactions:", error)
@@ -243,7 +257,13 @@ function AdminPage() {
                 <div className="space-y-2">
                   <h3 className="text-sm font-medium">Your API Keys:</h3>
                   {apiKeys.map((key, index) => (
-                    <div key={index} className="bg-muted p-3 rounded-md text-md flex items-center">
+                    <div 
+                      key={index} 
+                      className={`bg-muted p-3 rounded-md text-md flex items-center cursor-pointer hover:bg-muted/80 ${
+                        apiKey === key.key ? 'ring-2 ring-primary' : ''
+                      }`}
+                      onClick={() => setApiKey(key.key)}
+                    >
                       <Key className="h-4 w-4 mr-2 text-muted-foreground" />
                       <div>
                         <div className="font-mono">{key.key}</div>
@@ -339,6 +359,50 @@ function AdminPage() {
               <CardDescription>View all initialized swap transactions</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {apiKeys.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="apiKeySelect">Select API Key</Label>
+                  <select
+                    id="apiKeySelect"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    className="w-full p-2 border rounded-md bg-background"
+                  >
+                    <option value="">Select an API key...</option>
+                    {apiKeys.map((key, index) => (
+                      <option key={index} value={key.key}>
+                        {key.key.substring(0, 20)}... ({new Date(key.createdAt).toLocaleDateString()})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Button 
+                  onClick={loadTransactions} 
+                  disabled={!apiKey || isLoadingTransactions}
+                  className="w-full sm:w-auto"
+                >
+                  {isLoadingTransactions ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Load Transactions
+                    </>
+                  )}
+                </Button>
+                {!apiKey && (
+                  <p className="text-sm text-muted-foreground">
+                    Select an API key to load transactions
+                  </p>
+                )}
+              </div>
+
               {isLoadingTransactions ? (
                 <div className="flex justify-center py-4">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -367,7 +431,9 @@ function AdminPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-4 text-muted-foreground">No transactions found.</div>
+                <div className="text-center py-4 text-muted-foreground">
+                  {apiKey ? "No transactions found." : "Select an API key to view transactions"}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -378,4 +444,3 @@ function AdminPage() {
 }
 
 export default AdminPage
-
