@@ -25,7 +25,7 @@ function AdminPage() {
   const [isAddingWallet, setIsAddingWallet] = useState(false)
   const [apiKey, setApiKey] = useState("")
 
-  const BASE_URL = "http://localhost:3000"
+  const BASE_URL = "https://swapflow.onrender.com"
 
   useEffect(() => {
     // Redirect if not logged in

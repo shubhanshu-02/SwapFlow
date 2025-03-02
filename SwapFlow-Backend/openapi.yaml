@@ -5,7 +5,7 @@ info:
   description: API for authentication and swap operations
 
 servers:
-  - url: http://localhost:3000
+  - url: https://swapflow.onrender.com
     description: Development server
 
 components:

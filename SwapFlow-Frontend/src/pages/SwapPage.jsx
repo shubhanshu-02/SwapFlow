@@ -32,7 +32,7 @@ function SwapPage() {
   const [swapData, setSwapData] = useState(null)
   const [txSignature, setTxSignature] = useState(null)
 
-  const BASE_URL = "http://localhost:3000"
+  const BASE_URL = "https://swapflow.onrender.com"
 
   // Load API key from user if available
   useEffect(() => {
