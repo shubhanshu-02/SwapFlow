@@ -12,7 +12,7 @@ function Header() {
 
   return (
     <header className="border-b">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-8">
           <Link to="/" className="font-bold text-xl">
             SwapFlow

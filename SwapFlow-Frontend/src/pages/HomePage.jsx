@@ -2,16 +2,17 @@ import { Link } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
 import { ArrowRight } from "lucide-react"
+import { ReactTyped } from "react-typed";
 
 function HomePage() {
   return (
     <div className="flex flex-col items-center justify-center space-y-8 py-12">
-      <div className="text-center space-y-4 max-w-3xl my-4">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Welcome to SwapFlow</h1>
+      <div className="text-center space-y-4 max-w-3xl my-4 pb-2">
+        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl"> SwapFlow Payment Gateway</h1>
         <p className="text-xl text-muted-foreground">The easiest way to swap tokens on Solana</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl pb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-4xl pb-4">
         <Card>
           <CardHeader>
             <CardTitle>Swap Tokens</CardTitle>
@@ -42,7 +43,7 @@ function HomePage() {
 
       </div>
 
-<div className="gap-6 w-full max-w-lg pb-8">
+<div className="gap-6 w-full max-w-lg pb-10">
         <Card>
           <CardHeader>
             <CardTitle>Admin Panel</CardTitle>
@@ -58,7 +59,17 @@ function HomePage() {
         </Card>
 </div>
 
-        
+        <div className="mt-4 text-xl text-muted-foreground p-4">
+        {/* Seamless integration, no extra packages, instant setup */}
+        <ReactTyped
+                className="font-bold text-4xl"
+                strings={["Seamless Integration", "No extra packages", "Instant Setup"]}
+                typeSpeed={35}
+                backSpeed={20}
+                loop={true}
+                backDelay={1500}
+              />
+        </div>
 
       <div className="px-6">
 

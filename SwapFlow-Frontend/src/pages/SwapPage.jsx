@@ -208,7 +208,7 @@ function SwapPage() {
       const serializedTransaction = Buffer.from(swapData.data.swapTransaction, "base64")
 
       // Use the Solana web3.js library to deserialize
-      console.log(serializedTransaction)
+      // console.log(serializedTransaction)
       const transaction = VersionedTransaction.deserialize(serializedTransaction)
 
       // Sign and send transaction
@@ -296,7 +296,7 @@ function SwapPage() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="apiKey">API Key</Label>
+            <Label htmlFor="apiKey"> API KEY (This key should not be shared)</Label>
             <Input id="apiKey" placeholder="Your API Key" value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
             {!user && (
               <div className="text-xs text-muted-foreground">
