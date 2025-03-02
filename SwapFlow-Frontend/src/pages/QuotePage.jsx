@@ -16,7 +16,7 @@ function QuotePage() {
   const [quoteData, setQuoteData] = useState(null)
   const { toast } = useToast()
 
-  const BASE_URL = "https://swapflow.onrender.com"
+  const BASE_URL = "https://swapflow-mdnx.onrender.com"
 
   const getQuote = async () => {
     if (!amount || isNaN(Number(amount))) {

@@ -9,8 +9,10 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
+
   //meta vite env
  const BASE_URL = import.meta.env.VITE_BASE_URL;
+
 
 
   useEffect(() => {
