@@ -28,11 +28,29 @@ function AdminPage() {
   const BASE_URL = import.meta.env.VITE_BASE_URL
 
   useEffect(() => {
+    // Add console log to see user object
+    console.log("User object:", user)
+    
     // Redirect if not logged in
     if (!loading && !user) {
       navigate("/auth/login")
     } else if (user) {
-      loadApiKeys()
+      // Add console log to check if apiKey exists
+      console.log("Checking for API key in user object:", user.apiKey)
+      
+      // If user has an apiKey property from login, use it
+      if (user.apiKey) {
+        console.log("Found API key from login:", user.apiKey)
+        setApiKeys([{
+          key: user.apiKey,
+          createdAt: new Date().toISOString() // Since we don't have createdAt from login, use current time
+        }])
+        // Set the active API key
+        setApiKey(user.apiKey)
+        console.log("Set active API key to:", user.apiKey)
+      } else {
+        console.log("No API key found in user object")
+      }
       loadWallets()
     }
   }, [user, loading, navigate])
@@ -53,7 +71,8 @@ function AdminPage() {
       const data = await response.json()
 
       if (data.status === "success") {
-        setApiKeys(data.data.user.apiKeys || [])
+        // Append new keys to existing ones
+        setApiKeys(prevKeys => [...prevKeys, ...(data.data.user.apiKeys || [])])
       }
     } catch (error) {
       console.error("Failed to load API keys:", error)

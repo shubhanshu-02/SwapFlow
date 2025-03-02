@@ -18,7 +18,12 @@ function LoginPage() {
     setIsSubmitting(true)
 
     try {
+      console.log("Attempting login with:", { email })
+      
       const success = await login(email, password)
+      
+      console.log("Login response:", success)
+      
       if (success) {
         navigate("/admin")
       }
