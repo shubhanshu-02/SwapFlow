@@ -9,8 +9,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
- const BASE_URL = "https://swapflow.onrender.com";
-
+ const BASE_URL = "https://swapflow-mdnx.onrender.com"
 
   useEffect(() => {
     // Check if user is already logged in
