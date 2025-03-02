@@ -14,7 +14,7 @@ router.get('/status', (req, res) => {
 
 // GET /api/v1/quote
 router.get('/quote', async (req, res, next) => {
-  console.log('Quote Request:', req.query);
+//   console.log('Quote Request:', req.query);
   try {
     const { inputMint, outputMint, amount, slippageBps = '50', swapMode = 'ExactIn' } = req.query;
 
@@ -139,13 +139,13 @@ router.post('/swap', verifyApiKey, async (req, res) => {
     try {
         const { inputMint, outputMint, amount, slippageBps = '50', customerPublicKey } = req.body;
         
-        console.log('Swap Request Received:', {
-            inputMint,
-            outputMint,
-            amount,
-            slippageBps,
-            customerPublicKey
-        });
+        // console.log('Swap Request Received:', {
+        //     inputMint,
+        //     outputMint,
+        //     amount,
+        //     slippageBps,
+        //     customerPublicKey
+        // });
 
         // Get merchant's wallet address from DB
         const merchantWallet = await prisma.walletAddress.findUnique({
@@ -157,7 +157,7 @@ router.post('/swap', verifyApiKey, async (req, res) => {
             }
         });
 
-        console.log('Merchant Wallet Found:', merchantWallet);
+        // console.log('Merchant Wallet Found:', merchantWallet);
 
         if (!merchantWallet) {
             return res.status(400).json({
@@ -167,7 +167,7 @@ router.post('/swap', verifyApiKey, async (req, res) => {
         }
 
         // Get quote first
-        console.log('Requesting Quote from Jupiter...');
+        // console.log('Requesting Quote from Jupiter...');
         const quoteResponse = await axios.get('https://quote-api.jup.ag/v6/quote', {
             params: {
                 inputMint: TOKENS[inputMint],
@@ -178,7 +178,7 @@ router.post('/swap', verifyApiKey, async (req, res) => {
             }
         });
 
-        console.log('Quote Response:', quoteResponse.data);
+        // console.log('Quote Response:', quoteResponse.data);
 
         // Prepare swap request
         const swapRequestData = {
@@ -196,7 +196,7 @@ router.post('/swap', verifyApiKey, async (req, res) => {
             asLegacyTransaction: false
         };
 
-        console.log('Sending Swap Request to Jupiter:', JSON.stringify(swapRequestData, null, 2));
+        // console.log('Sending Swap Request to Jupiter:', JSON.stringify(swapRequestData, null, 2));
 
         // Get swap transaction
         const swapResponse = await axios.post(
@@ -209,7 +209,7 @@ router.post('/swap', verifyApiKey, async (req, res) => {
             }
         );
 
-        console.log('Swap Response from Jupiter:', swapResponse.data);
+        // console.log('Swap Response from Jupiter:', swapResponse.data);
 
         // Create initial transaction record
         const initialTx = await prisma.initialTransaction.create({
@@ -224,7 +224,7 @@ router.post('/swap', verifyApiKey, async (req, res) => {
             }
         });
 
-        console.log('Initial Transaction Created:', initialTx);
+        // console.log('Initial Transaction Created:', initialTx);
 
         const responseData = {
             status: 'success',
@@ -250,7 +250,7 @@ router.post('/swap', verifyApiKey, async (req, res) => {
             }
         };
 
-        console.log('Sending Response to Frontend:', JSON.stringify(responseData, null, 2));
+        // console.log('Sending Response to Frontend:', JSON.stringify(responseData, null, 2));
         res.json(responseData);
 
     } catch (error) {
@@ -304,7 +304,7 @@ router.post('/confirm-transaction', verifyApiKey, async (req, res) => {
             status = 'failed';
             console.error(`Transaction failed: https://solscan.io/tx/${signature}/`);
         } else {
-            console.log(`Transaction successful: https://solscan.io/tx/${signature}/`);
+            // console.log(`Transaction successful: https://solscan.io/tx/${signature}/`);
         }
 
         // Create completed transaction record
