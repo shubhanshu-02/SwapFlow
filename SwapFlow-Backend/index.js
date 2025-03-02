@@ -8,10 +8,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // CORS configuration
-app.use(cors({
-    origin: true, // or specify your frontend URLs
+const corsOptions = {
+    origin: true, // Allow all origins
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
         'Content-Type',
         'X-API-Key',
@@ -20,14 +20,17 @@ app.use(cors({
         'Accept'
     ],
     exposedHeaders: ['set-cookie']
-}));
+};
+
+app.use(cors(corsOptions));
 
 // Additional headers for preflight requests
 app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin); // Allow the requesting origin
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header(
         'Access-Control-Allow-Headers',
-        'Origin, X-Requested-With, Content-Type, Accept, X-API-Key'
+        'Origin, X-Requested-With, Content-Type, Accept, X-API-Key, Authorization'
     );
     next();
 });
